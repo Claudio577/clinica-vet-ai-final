@@ -1,3 +1,4 @@
+# === app.py ===
 import streamlit as st
 import pandas as pd
 from modelo import carregar_dados, treinar_modelos, prever
@@ -7,9 +8,7 @@ st.markdown("Insira a anamnese para prever o risco de eutanásia e cuidados clí
 
 try:
     df, df_doencas = carregar_dados()
-    features = ['Idade', 'Peso', 'Gravidade', 'Dor', 'Mobilidade', 'Apetite', 'Temperatura', 'tem_doenca_letal']
-    features_eutanasia = features.copy()
-    modelos, le_mob, le_app, palavras_chave = treinar_modelos(df, features, features_eutanasia, df_doencas)
+    modelos, le_mob, le_app, palavras_chave, features, features_eutanasia = treinar_modelos(df, df_doencas)
 except Exception as e:
     st.error(f"Erro ao carregar dados ou treinar modelos: {e}")
     st.stop()
@@ -24,3 +23,4 @@ if st.button("🔍 Analisar"):
         st.subheader("📋 Resultado da Análise")
         for k, v in resultado.items():
             st.write(f"**{k}**: {v}")
+
