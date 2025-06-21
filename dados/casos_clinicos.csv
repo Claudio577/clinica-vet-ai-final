@@ -1,0 +1,3 @@
+Idade,Peso,Gravidade,Dor,Mobilidade,Apetite,Temperatura,Alta,Internar,Dias Internado,Eutanasia,Doença
+4,12.0,3,2,normal,normal,38.5,1,0,0,0,nenhuma
+10,20.0,7,8,limitada,baixo,39.2,0,1,5,1,linfoma
