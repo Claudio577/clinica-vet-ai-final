@@ -7,19 +7,14 @@ st.markdown("Insira a anamnese para prever o risco de eutanásia e cuidados clí
 
 try:
     df, df_doencas = carregar_dados()
-
-    # Definindo os recursos
     features = ['Idade', 'Peso', 'Gravidade', 'Dor', 'Mobilidade', 'Apetite', 'Temperatura']
     features_eutanasia = features + ['tem_doenca_letal']
-
-    # Corrigido: passando os 4 argumentos
     modelos, le_mob, le_app, palavras_chave = treinar_modelos(df, features, features_eutanasia, df_doencas)
-
 except Exception as e:
     st.error(f"Erro ao carregar dados ou treinar modelos: {e}")
     st.stop()
 
-texto = st.text_area("✍️ Digite a anamnese do paciente:")
+texto = st.text_area("Digite a anamnese do paciente:")
 
 if st.button("🔍 Analisar"):
     if not texto.strip():
