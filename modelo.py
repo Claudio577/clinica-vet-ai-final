@@ -22,11 +22,21 @@ def extrair_variavel(padrao, texto, tipo=float, valor_padrao=None):
     return valor_padrao
 
 def extrair_doencas_graves(texto_norm, palavras_chave):
-    return [d for d in palavras_chave if re.search(rf"\b{re.escape(d)}\b", texto_norm)]
+    return [d for d in palavras_chave if d in texto_norm]
 
 def carregar_dados():
     df = pd.read_csv("dados/casos_clinicos.csv")
     df_doencas = pd.read_csv("dados/doencas_graves.csv")
+
+    # Padronizar nomes das colunas para evitar erros de acento
+    df_doencas.columns = (
+        df_doencas.columns
+        .str.strip()
+        .str.normalize('NFKD')
+        .str.encode('ascii', 'ignore')
+        .str.decode('utf-8')
+        .str.lower()
+    )
     return df, df_doencas
 
 def treinar_modelos(df, features, features_eutanasia, df_doencas):
@@ -36,9 +46,9 @@ def treinar_modelos(df, features, features_eutanasia, df_doencas):
     df['Mobilidade'] = le_mob.fit_transform(df['Mobilidade'].astype(str).str.lower().str.strip())
     df['Apetite'] = le_app.fit_transform(df['Apetite'].astype(str).str.lower().str.strip())
 
-    palavras_chave = [normalizar_texto(d) for d in df_doencas['Doenca'].dropna().unique()]
-    df['Doenca'] = df['Doenca'].fillna("").apply(normalizar_texto)
-    df['tem_doenca_letal'] = df['Doenca'].apply(lambda d: int(any(p in d for p in palavras_chave)))
+    palavras_chave = [normalizar_texto(d) for d in df_doencas['doenca'].dropna().unique()]
+    df['Doença'] = df['Doença'].fillna("").apply(normalizar_texto)
+    df['tem_doenca_letal'] = df['Doença'].apply(lambda d: int(any(p in d for p in palavras_chave)))
 
     X_e = df[features_eutanasia]
     y_e = df['Eutanasia']
@@ -58,26 +68,26 @@ def prever(anamnese, modelos, le_mob, le_app, palavras_chave, features, features
 
     idade = extrair_variavel(r"(\d+(?:\.\d+)?)\s*anos?", texto_norm, float, 5.0)
     peso = extrair_variavel(r"(\d+(?:\.\d+)?)\s*kg", texto_norm, float, 10.0)
-    temperatura = extrair_variavel(r"(\d{2}(?:[.,]\d+)?)\s*(?:graus|c|celsius|\u00ba?c)", texto_norm, float, 38.5)
+    temperatura = extrair_variavel(r"(\d{2}(?:[.,]\d+)?)\s*(?:graus|c|celsius|ºc)", texto_norm, float, 38.5)
     gravidade = 10 if "vermelho" in texto_norm else 5
 
     if any(p in texto_norm for p in ["dor intensa", "dor severa", "dor forte"]):
         dor = 10
     elif "dor moderada" in texto_norm:
         dor = 5
-    elif any(p in texto_norm for p in ["sem dor", "ausencia de dor"]):
+    elif any(p in texto_norm for p in ["sem dor", "ausência de dor"]):
         dor = 0
     else:
         dor = 4
 
-    if any(p in texto_norm for p in ["sem apetite", "nao come", "perda de apetite"]):
+    if any(p in texto_norm for p in ["sem apetite", "não come", "perda de apetite"]):
         apetite = le_app.transform(["nenhum"])[0] if "nenhum" in le_app.classes_ else 0
     elif any(p in texto_norm for p in ["baixo apetite", "apetite baixo"]):
         apetite = le_app.transform(["baixo"])[0] if "baixo" in le_app.classes_ else 0
     else:
         apetite = le_app.transform(["normal"])[0] if "normal" in le_app.classes_ else 0
 
-    if any(p in texto_norm for p in ["nao anda", "sem andar", "incapaz de andar"]):
+    if any(p in texto_norm for p in ["não anda", "sem andar", "incapaz de andar"]):
         mobilidade = le_mob.transform(["sem andar"])[0] if "sem andar" in le_mob.classes_ else 0
     elif any(p in texto_norm for p in ["mobilidade limitada", "dificuldade locomotora"]):
         mobilidade = le_mob.transform(["limitada"])[0] if "limitada" in le_mob.classes_ else 0
@@ -89,7 +99,7 @@ def prever(anamnese, modelos, le_mob, le_app, palavras_chave, features, features
 
     sintomas_terminais = any(p in texto_norm for p in [
         "extremamente prostrado", "sem apetite", "sem mobilidade", "estado mental alterado",
-        "nao reage", "vomitos frequentes", "febre alta", "sem resposta", "sem reacoes"
+        "não reage", "vômitos frequentes", "febre alta", "sem resposta", "sem reações"
     ])
 
     entrada = pd.DataFrame([[idade, peso, gravidade, dor, mobilidade, apetite, temperatura, tem_doenca_letal]],
