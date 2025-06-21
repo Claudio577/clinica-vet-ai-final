@@ -22,9 +22,10 @@ def extrair_variavel(padrao, texto, tipo=float, valor_padrao=None):
     return valor_padrao
 
 def carregar_dados():
-    df = pd.read_csv("dados/casos_clinicos.csv")
-    df_graves = pd.read_csv("dados/doencas_caninas_eutanasia_expandidas.csv")
-    df_comuns = pd.read_csv("dados/top100_doencas_caninas.csv")
+    df = pd.read_csv("data/casos_clinicos.csv")
+    df_doencas_graves = pd.read_csv("data/doencas_caninas_eutanasia_expandidas.csv")
+    df_doencas_comuns = pd.read_csv("data/top100_doencas_caninas.csv")
+
     return df, df_graves, df_comuns
 
 def treinar_modelos(df, features, features_eutanasia, df_graves, df_comuns):
